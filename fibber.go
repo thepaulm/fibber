@@ -8,7 +8,9 @@ import (
 )
 
 const padSize = 0
-const fibberCount = 16
+const fibberCount = 32
+
+var fibbers [fibberCount]fibber
 
 type fibber struct {
 	last int
@@ -35,7 +37,7 @@ func (f *fibber) String() string {
 	return fmt.Sprintf("%v", f.val)
 }
 
-func describe(fibbers [fibberCount]fibber) {
+func describe() {
 	fmt.Printf("Addresses of our fibbers (%d bytes):\n", unsafe.Sizeof(fibber{}))
 	var plast unsafe.Pointer
 	for i := range fibbers {
@@ -58,26 +60,32 @@ func fibberize(fib *fibber, runs int, w *sync.WaitGroup) {
 	w.Done()
 }
 
-func main() {
-	var fibbers [fibberCount]fibber
+// Run is the main entry for a test run
+func Run(gof int, runs int, overlap int) {
 
-	describe(fibbers)
+	var w sync.WaitGroup
+	o := 0
+	for i := 0; i < gof; i++ {
+		w.Add(1)
+		go fibberize(&fibbers[o], runs, &w)
+		o++
+		if o == overlap {
+			o = 0
+		}
+	}
+
+	w.Wait()
+
+}
+
+func main() {
+	describe()
 
 	funcs := flag.Int("f", 0, "num gofunc")
 	runs := flag.Int("r", 0, "num runs per")
 	overlap := flag.Int("o", 0, "overlap count")
 	flag.Parse()
 
-	var w sync.WaitGroup
-	o := 0
-	for i := 0; i < *funcs; i++ {
-		w.Add(1)
-		go fibberize(&fibbers[o], *runs, &w)
-		o++
-		if o == *overlap {
-			o = 0
-		}
-	}
+	Run(*funcs, *runs, *overlap)
 
-	w.Wait()
 }
