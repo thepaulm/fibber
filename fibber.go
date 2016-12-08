@@ -7,7 +7,6 @@ import (
 	"unsafe"
 )
 
-const padSize = 0
 const fibberCount = 32
 
 var fibbers [fibberCount]fibber
@@ -16,7 +15,7 @@ type fibber struct {
 	last int
 	val  int
 	sync.Mutex
-	pad [padSize]int
+	pad [PadSize]int
 }
 
 func (f *fibber) fibon() {
@@ -79,12 +78,15 @@ func Run(gof int, runs int, overlap int) {
 }
 
 func main() {
-	describe()
-
 	funcs := flag.Int("f", 0, "num gofunc")
 	runs := flag.Int("r", 0, "num runs per")
 	overlap := flag.Int("o", 0, "overlap count")
+	descr := flag.Int("d", 1, "describe")
 	flag.Parse()
+
+	if *descr != 0 {
+		describe()
+	}
 
 	Run(*funcs, *runs, *overlap)
 
